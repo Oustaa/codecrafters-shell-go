@@ -1,15 +1,24 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
+	"strings"
 )
 
 func main() {
-	fmt.Fprint(os.Stdout, "$ ")
-	/* read users commands */
-	var command string
-	fmt.Scanf("%s", &command)
+	for {
+		fmt.Fprint(os.Stdout, "$ ")
 
-	fmt.Printf("%s: command not found\n", command)
+		reader := bufio.NewReader(os.Stdin)
+		command, err := reader.ReadString('\n')
+		if err != nil {
+			fmt.Println("Error reading input:", err)
+			return
+		}
+		command = strings.ReplaceAll(command, "\n", "")
+
+		fmt.Printf("%s: command not found\n", command)
+	}
 }
