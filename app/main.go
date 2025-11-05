@@ -57,9 +57,11 @@ func echo(command string) {
 
 func typeCommand(command string) {
 	commandSlice := strings.Split(command, " ")
-	if len(commandSlice) > 1 && slices.Contains(availableCommands, commandSlice[1]) {
-		fmt.Printf("%s is a shell builtin", commandSlice[1])
-	} else {
-		fmt.Printf("%s: not found", commandSlice[1])
+	if len(commandSlice) > 1 {
+		if slices.Contains(availableCommands, commandSlice[1]) {
+			fmt.Printf("%s is a shell builtin\n", commandSlice[1])
+		} else {
+			fmt.Printf("%s: not found\n", commandSlice[1])
+		}
 	}
 }
