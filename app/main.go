@@ -32,6 +32,20 @@ func main() {
 			os.Exit(int(code))
 		}
 
-		fmt.Printf("%s: command not found\n", command)
+		switch {
+		case strings.HasPrefix(command, "echo"):
+			echo(command)
+		default:
+			fmt.Printf("%s: command not found\n", command)
+		}
+
 	}
+}
+
+func echo(command string) {
+	/* get message */
+	messageSlice := strings.Split(command, "echo ")
+	/* print it */
+	message := strings.Join(messageSlice, " ")
+	fmt.Println(strings.TrimPrefix(message, " "))
 }
