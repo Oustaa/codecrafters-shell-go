@@ -4,9 +4,12 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 )
+
+var availableCommands []string = []string{"echo", "type", "exit"}
 
 func main() {
 	for {
@@ -35,6 +38,8 @@ func main() {
 		switch {
 		case strings.HasPrefix(command, "echo"):
 			echo(command)
+		case strings.HasPrefix(command, "type"):
+			typeCommand(command)
 		default:
 			fmt.Printf("%s: command not found\n", command)
 		}
@@ -48,4 +53,13 @@ func echo(command string) {
 	/* print it */
 	message := strings.Join(messageSlice, " ")
 	fmt.Println(strings.TrimPrefix(message, " "))
+}
+
+func typeCommand(command string) {
+	commandSlice := strings.Split(command, " ")
+	if len(commandSlice) > 1 && slices.Contains(availableCommands, commandSlice[1]) {
+		fmt.Printf("%s is a shell builtin", commandSlice[1])
+	} else {
+		fmt.Printf("%s: not found", commandSlice[1])
+	}
 }
