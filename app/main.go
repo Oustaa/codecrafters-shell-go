@@ -3,7 +3,9 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"slices"
 	"strconv"
@@ -39,20 +41,31 @@ func main() {
 			os.Exit(int(code))
 		}
 
-		switch command {
-		case "echo":
+		if command == "echo" {
 			echo(params)
-		case "type":
+		} else if command == "type" {
 			typeCommand(params)
-		default:
+		} else if searchExecFile(command) != "" {
+			executeCommand(command, strings.Split(params, " "))
+		} else {
 			fmt.Printf("%s: command not found\n", command)
 		}
-
 	}
 }
 
 func echo(message string) {
 	fmt.Println(strings.TrimPrefix(message, " "))
+}
+
+func executeCommand(command string, args []string) {
+	cmd := exec.Command(command, args...)
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Fatalf("Command execution failed: %v\nOutput: %s", err, string(output))
+	}
+
+	fmt.Print(string(output))
 }
 
 func typeCommand(command string) {
