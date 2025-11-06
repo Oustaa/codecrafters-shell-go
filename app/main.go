@@ -4,9 +4,12 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"slices"
 	"strconv"
 	"strings"
+
+	"github.com/codecrafters-io/shell-starter-go/utils"
 )
 
 var availableCommands []string = []string{"echo", "type", "exit"}
@@ -16,12 +19,13 @@ func main() {
 		fmt.Fprint(os.Stdout, "$ ")
 
 		reader := bufio.NewReader(os.Stdin)
-		command, err := reader.ReadString('\n')
+		userInput, err := reader.ReadString('\n')
 		if err != nil {
 			fmt.Println("Error reading input:", err)
 			return
 		}
-		command = strings.ReplaceAll(command, "\n", "")
+		userInput = strings.ReplaceAll(userInput, "\n", "")
+		command, params := utils.CommandReader(userInput)
 
 		// exit on command exit
 		if strings.HasPrefix(command, "exit") {
@@ -35,11 +39,11 @@ func main() {
 			os.Exit(int(code))
 		}
 
-		switch {
-		case strings.HasPrefix(command, "echo"):
-			echo(command)
-		case strings.HasPrefix(command, "type"):
-			typeCommand(command)
+		switch command {
+		case "echo":
+			echo(params)
+		case "type":
+			typeCommand(params)
 		default:
 			fmt.Printf("%s: command not found\n", command)
 		}
@@ -47,21 +51,53 @@ func main() {
 	}
 }
 
-func echo(command string) {
-	/* get message */
-	messageSlice := strings.Split(command, "echo ")
-	/* print it */
-	message := strings.Join(messageSlice, " ")
+func echo(message string) {
 	fmt.Println(strings.TrimPrefix(message, " "))
 }
 
 func typeCommand(command string) {
-	commandSlice := strings.Split(command, " ")
-	if len(commandSlice) > 1 {
-		if slices.Contains(availableCommands, commandSlice[1]) {
-			fmt.Printf("%s is a shell builtin\n", commandSlice[1])
+	if slices.Contains(availableCommands, command) {
+		fmt.Printf("%s is a shell builtin\n", command)
+	} else {
+		execPath := searchExecFile(command)
+		if execPath != "" {
+			fmt.Printf("%s is %s\n", command, execPath)
 		} else {
-			fmt.Printf("%s: not found\n", commandSlice[1])
+			fmt.Printf("%s: not found\n", command)
 		}
 	}
+}
+
+func searchExecFile(command string) string {
+	pathStr := os.Getenv("PATH")
+	paths := strings.Split(pathStr, string(os.PathListSeparator))
+
+	if strings.ContainsRune(command, os.PathSeparator) {
+		if isExecutable(command) {
+			return command
+		}
+		return ""
+	}
+
+	for _, dir := range paths {
+		if dir == "" {
+			dir = "."
+		}
+		candidate := filepath.Join(dir, command)
+		if isExecutable(candidate) {
+			return candidate
+		}
+	}
+	return ""
+}
+
+func isExecutable(path string) bool {
+	info, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	if !info.Mode().IsRegular() {
+		return false
+	}
+	return info.Mode().Perm()&0o111 != 0
 }
