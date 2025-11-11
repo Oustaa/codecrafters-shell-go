@@ -14,7 +14,7 @@ import (
 	"github.com/codecrafters-io/shell-starter-go/utils"
 )
 
-var availableCommands []string = []string{"echo", "type", "exit"}
+var availableCommands []string = []string{"echo", "type", "exit", "pwd"}
 
 func main() {
 	for {
@@ -45,6 +45,9 @@ func main() {
 			echo(params)
 		} else if command == "type" {
 			typeCommand(params)
+		} else if command == "pwd" {
+			pwd, _ := os.Getwd()
+			fmt.Println(pwd)
 		} else if searchExecFile(command) != "" {
 			executeCommand(command, strings.Split(params, " "))
 		} else {
