@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"slices"
 	"strconv"
@@ -14,7 +15,7 @@ import (
 	"github.com/codecrafters-io/shell-starter-go/utils"
 )
 
-var availableCommands []string = []string{"echo", "type", "exit", "pwd"}
+var availableCommands []string = []string{"echo", "type", "exit", "pwd", "cd"}
 
 func main() {
 	for {
@@ -48,6 +49,8 @@ func main() {
 		} else if command == "pwd" {
 			pwd, _ := os.Getwd()
 			fmt.Println(pwd)
+		} else if command == "cd" {
+			changeDirectore(params)
 		} else if searchExecFile(command) != "" {
 			executeCommand(command, strings.Split(params, " "))
 		} else {
@@ -82,6 +85,42 @@ func typeCommand(command string) {
 			fmt.Printf("%s: not found\n", command)
 		}
 	}
+}
+
+func changeDirectore(params string) {
+	directionPath := strings.Trim(params, " ")
+
+	// this is needed just to verify how many paramas passed to the ccd command
+	paramsSlice := strings.Split(directionPath, " ")
+	if len(paramsSlice) > 1 {
+		fmt.Println("cd: too many arguments")
+		return
+	}
+
+	if directionPath == "" {
+		directionPath = "~"
+	}
+
+	fullDirection := ""
+
+	if strings.HasPrefix(directionPath, "~") {
+		homeDir, _ := os.UserHomeDir()
+		fullDirection = strings.ReplaceAll(directionPath, "~", homeDir)
+	} else if strings.HasPrefix(directionPath, "/") {
+		fullDirection = directionPath
+	} else {
+		cwd, _ := os.Getwd()
+		fullDirection = path.Join(cwd, directionPath)
+	}
+
+	stats, err := os.Stat(fullDirection)
+
+	if err != nil || !stats.IsDir() {
+		fmt.Printf("cd: %s: No such file or directory\n", directionPath)
+		return
+	}
+
+	os.Chdir(fullDirection)
 }
 
 func searchExecFile(command string) string {
