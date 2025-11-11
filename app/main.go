@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"path/filepath"
 	"slices"
 	"strconv"
 	"strings"
@@ -51,7 +50,7 @@ func main() {
 			fmt.Println(pwd)
 		} else if command == "cd" {
 			changeDirectore(params)
-		} else if searchExecFile(command) != "" {
+		} else if utils.SearchExecFile(command) != "" {
 			executeCommand(command, strings.Split(params, " "))
 		} else {
 			fmt.Printf("%s: command not found\n", command)
@@ -78,7 +77,7 @@ func typeCommand(command string) {
 	if slices.Contains(availableCommands, command) {
 		fmt.Printf("%s is a shell builtin\n", command)
 	} else {
-		execPath := searchExecFile(command)
+		execPath := utils.SearchExecFile(command)
 		if execPath != "" {
 			fmt.Printf("%s is %s\n", command, execPath)
 		} else {
@@ -121,38 +120,4 @@ func changeDirectore(params string) {
 	}
 
 	os.Chdir(fullDirection)
-}
-
-func searchExecFile(command string) string {
-	pathStr := os.Getenv("PATH")
-	paths := strings.Split(pathStr, string(os.PathListSeparator))
-
-	if strings.ContainsRune(command, os.PathSeparator) {
-		if isExecutable(command) {
-			return command
-		}
-		return ""
-	}
-
-	for _, dir := range paths {
-		if dir == "" {
-			dir = "."
-		}
-		candidate := filepath.Join(dir, command)
-		if isExecutable(candidate) {
-			return candidate
-		}
-	}
-	return ""
-}
-
-func isExecutable(path string) bool {
-	info, err := os.Stat(path)
-	if err != nil {
-		return false
-	}
-	if !info.Mode().IsRegular() {
-		return false
-	}
-	return info.Mode().Perm()&0o111 != 0
 }
